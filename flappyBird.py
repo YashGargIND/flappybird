@@ -195,7 +195,7 @@ while not exitGame:
     if score > int(high_score):
         high_score = score
         high_score_string = str(int(high_score))
-        print(high_score_string)
+        #print(high_score_string)
     pygame.display.update()
     clock.tick(120)
 high_score_file.close()
