@@ -1,3 +1,5 @@
+# If pygame is not installed type "pip install pygame" in terminal to download
+# Run program to start playing
 import pygame
 import random
 
@@ -8,20 +10,22 @@ screen = pygame.display.set_mode((288, 512))
 pygame.display.set_caption("Flappy Bird")
 clock = pygame.time.Clock()
 gameFont = pygame.font.Font('04B_19.ttf',20)
-
+# ---------------------------------------------------------------------------------------------------------
         # Game specific variables
 exitGame = False
-gameOver = 2
+gameOver = 2 # 0= In play; 1 = Game Over; 2 = Start screen
 gravity = 0.25
 birdMovement = 0
 score = 0
-high_score = 0
-
+high_score_file = open("Highscores.txt", "r+")
+high_score = str(high_score_file.read())
+# ----------------------------------------------------------------------------------------------------------
             # GAME ASSETS
-# background
-bgSurface = pygame.image.load('img/background-day.png').convert()
-
-# score
+            # background
+bgSurfaceDay = pygame.image.load('img/background-day.png').convert()
+bgSurfaceNight = pygame.image.load('img/background-night.png').convert()
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # score
 def score_display():
         score_surface = gameFont.render(f'score : {int(score)}',True,(255,255,255))
         score_rect = score_surface.get_rect(center = (144,50))
@@ -30,16 +34,15 @@ def score_display():
         highscore_surface = gameFont.render(f'Highscore : {int(high_score)}', True, (255, 255, 255))
         highscore_rect = highscore_surface.get_rect(center=(144, 475))
         screen.blit(highscore_surface, highscore_rect)
-
-
-# floor
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # floor
 floorSurface = pygame.image.load('img/base.png').convert()
 floorXPos = 0
 def draw_floor():
     screen.blit(floorSurface, (floorXPos, 400))
     screen.blit(floorSurface, (floorXPos + 288, 400))
-
-# bird
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # bird
 birdUpflap = pygame.image.load('img/bluebird-upflap.png').convert_alpha()
 birdMidflap = pygame.image.load('img/bluebird-midflap.png').convert_alpha()
 birdDownflap = pygame.image.load('img/bluebird-downflap.png').convert_alpha()
@@ -56,23 +59,22 @@ def bird_animation():
 def rotate_bird(bird):
     new_bird = pygame.transform.rotozoom(bird,-birdMovement*3,1)
     return new_bird
-
-
-# game over
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # game over
 gameOverSurface = pygame.image.load('img/gameover.png').convert_alpha()
 startMessage = pygame.image.load('img/message.png').convert_alpha()
 startMessage = pygame.transform.scale(startMessage, (138, 123))
 startMessageRect = startMessage.get_rect(center = (144, 150))
-
-# audio files
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # audio files
 flapSound = pygame.mixer.Sound('audio/wing.wav')
 dieSound = pygame.mixer.Sound('audio/hit.ogg')
-
-# pipe
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # pipe
 pipeSurface = pygame.image.load('img/pipe-green.png').convert()
 pipeList=[]
 SPAWNPIPE = pygame.USEREVENT
-pygame.time.set_timer(SPAWNPIPE, 1000 )
+pygame.time.set_timer(SPAWNPIPE, 1000)
 pipeHeight = 256
 def create_pipe():
     new_pipe_top = pipeSurface.get_rect(midtop=(340, pipeHeight))
@@ -104,8 +106,10 @@ def collision_check(pipes):
             return 1
     return 0
 
-
+# -------------------------------------------------------------------------------------------------------
+            # GAME LOOP
 while not exitGame:
+            # Event Checker
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             exitGame = True
@@ -137,48 +141,68 @@ while not exitGame:
             else:
                 birdIndex = 0
             birdSurface,birdRect = bird_animation()
-
-
-    # background
-    screen.blit(bgSurface, (0, 0))
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # BackGround
+    if int(score/7)%2 == 0:
+        screen.blit(bgSurfaceDay, (0, 0))
+    if int(score/7)%2 == 1:
+        screen.blit(bgSurfaceNight, (0,0) )
     if gameOver ==0 :
         gameOver = collision_check(pipeList)
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Game Playing Screen
     if gameOver == 0:
-        # bird
+            # Bird
         rotated_bird = rotate_bird(birdSurface)
         screen.blit(rotated_bird, birdRect)
         birdMovement += gravity
         birdRect.centery += birdMovement
-
-        # pipes
+            # pipes
         pipeList = move_pipe(pipeList)
         draw_pipe()
         score_display()
         score += 0.0075
-        # floor
+            # floor
         draw_floor()
         floorXPos -= 1
         if floorXPos < -288:
             floorXPos = 0
         score_display()
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # Game Over Screen
     if gameOver == 1:
         draw_pipe()
         draw_floor()
         score_display()
         screen.blit(rotated_bird, birdRect)
         screen.blit(gameOverSurface, (50,200))
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # New Game Screen
     if gameOver == 2:
         draw_pipe()
         draw_floor()
-        score_display()
+        #score_display()
         screen.blit(birdSurface , birdRect)
         screen.blit(startMessage, startMessageRect)
-    if score > high_score:
+        Name_surface1 = gameFont.render('A ReCreation By', True,(255,255,255))
+        Name_surface2 = gameFont.render('Yash The GR8', True, (255,255,255    ))
+        name_rect1 = Name_surface1.get_rect(center=(144, 450))
+        name_rect2 = Name_surface2.get_rect(center=(144, 480))
+        screen.blit(Name_surface1, name_rect1)
+        screen.blit(Name_surface2, name_rect2)
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # HighScoring Mechanism
+    if score > int(high_score):
         high_score = score
-
+        high_score_string = str(int(high_score))
+        print(high_score_string)
     pygame.display.update()
     clock.tick(120)
-
+high_score_file.close()
+high_score_file = open("Highscores.txt", "w+")
+high_score_file.write(high_score_string)
+# -----------------------------------------------------------------------------------------------------------
 pygame.quit()
 quit()
+
+# -x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x--x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x
