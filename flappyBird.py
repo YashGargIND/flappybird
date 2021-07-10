@@ -1,5 +1,5 @@
 # If pygame is not installed type "pip install pygame" in terminal to download 
-# Run program to start playing
+# Run program to start playing isa
 import pygame
 import random
 
