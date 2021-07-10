@@ -1,4 +1,4 @@
-# If pygame is not installed type "pip install pygame" in terminal to download
+# If pygame is not installed type "pip install pygame" in terminal to download 
 # Run program to start playing
 import pygame
 import random
